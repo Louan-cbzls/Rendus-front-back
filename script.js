@@ -1,126 +1,134 @@
-// Liste de mots possibles
-const motsPossibles = ["tasse", "chien", "pomme", "table", "livre", "plage"];
-
-let motSecret;
+// Crée et gère un jeu de type Wordle avec interface HTML/CSS
+const mots = ["AVION", "ROUGE", "BLEUE", "TIGRE", "PLAGE", "VACHE", "NAGER", "CHIEN", "LIVRE", "RADIO","FLEUR","TABLE","POMME","FEMME","LACET","JOUET","FILLE","CHUTE","VOILE","SKATE","VAGUE","OCEAN","PLUIE","NEIGE","NUAGE","SABLE","FORET","ARBRE"];
+let motSolution = "";
 let tentative = 0;
-let motActuel = "";
-const MAX_TENTATIVES = 6;
-
-const grille = document.getElementById("grille");
-const clavier = document.getElementById("clavier");
-const message = document.getElementById("message");
-const boutonRejouer = document.getElementById("rejouer");
+let essaiActuel = "";
+const maxTentatives = 6;
 
 function demarrerJeu() {
-  // Réinitialise les variables et l'affichage
-  motSecret = motsPossibles[Math.floor(Math.random() * motsPossibles.length)];
+  motSolution = mots[Math.floor(Math.random() * mots.length)];
   tentative = 0;
-  motActuel = "";
+  essaiActuel = "";
+
+  const grille = document.getElementById("grille");
+  const clavier = document.getElementById("clavier");
+  const message = document.getElementById("message");
+  const rejouer = document.getElementById("rejouer");
   grille.innerHTML = "";
-  message.textContent = "";
-  boutonRejouer.style.display = "none";
-
-  // Création de la grille vide
-  for (let i = 0; i < MAX_TENTATIVES * 5; i++) {
-    const caseLettre = document.createElement("div");
-    caseLettre.className = "case";
-    grille.appendChild(caseLettre);
-  }
-
-  creerClavier();
-}
-
-function creerClavier() {
   clavier.innerHTML = "";
-  const lettres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  for (const lettre of lettres) {
-    const bouton = document.createElement("button");
-    bouton.textContent = lettre;
-    bouton.className = "touche";
-    bouton.onclick = () => ajouterLettre(lettre);
-    clavier.appendChild(bouton);
+  message.textContent = "";
+  rejouer.style.display = "none";
+
+  for (let i = 0; i < maxTentatives * 5; i++) {
+    const div = document.createElement("div");
+    div.className = "case";
+    grille.appendChild(div);
   }
 
-  // Ajout des touches spéciales
+  const lettres = "AZERTYUIOPQSDFGHJKLMWXCVBN".split("");
+  lettres.forEach(lettre => {
+    const btn = document.createElement("button");
+    btn.className = "touche";
+    btn.textContent = lettre;
+    btn.onclick = () => gererLettre(lettre);
+    clavier.appendChild(btn);
+  });
+
   const entrer = document.createElement("button");
-  entrer.textContent = "↵";
+  entrer.textContent = "⏎";
   entrer.className = "touche";
-  entrer.onclick = validerMot;
+  entrer.onclick = validerEssai;
   clavier.appendChild(entrer);
 
   const effacer = document.createElement("button");
   effacer.textContent = "⌫";
   effacer.className = "touche";
-  effacer.onclick = supprimerLettre;
+  effacer.onclick = () => {
+    essaiActuel = essaiActuel.slice(0, -1);
+    majGrille();
+  };
   clavier.appendChild(effacer);
+
+  document.addEventListener("keydown", gererClavierPhysique);
 }
 
-function ajouterLettre(lettre) {
-  if (motActuel.length < 5) {
-    motActuel += lettre;
-    miseAJourAffichage();
+function gererLettre(l) {
+  if (essaiActuel.length < 5 && tentative < maxTentatives) {
+    essaiActuel += l;
+    majGrille();
   }
 }
 
-function supprimerLettre() {
-  motActuel = motActuel.slice(0, -1);
-  miseAJourAffichage();
+function gererClavierPhysique(e) {
+  if (e.key === "Enter") return validerEssai();
+  if (e.key === "Backspace") {
+    essaiActuel = essaiActuel.slice(0, -1);
+    return majGrille();
+  }
+  const lettre = e.key.toUpperCase();
+  if (/^[A-ZÀ-ÿ]$/.test(lettre)) gererLettre(lettre);
 }
 
-function miseAJourAffichage() {
+function majGrille() {
+  const debutLigne = tentative * 5;
   for (let i = 0; i < 5; i++) {
-    const index = tentative * 5 + i;
-    const caseLettre = grille.children[index];
-    caseLettre.textContent = motActuel[i] || "";
+    const caseCourante = document.getElementById("grille").children[debutLigne + i];
+    caseCourante.textContent = essaiActuel[i] || "";
   }
 }
 
-function validerMot() {
-  if (motActuel.length !== 5) return;
+function validerEssai() {
+  if (essaiActuel.length !== 5) {
+    document.getElementById("message").textContent = "Mot incomplet.";
+    return;
+  }
+  const debutLigne = tentative * 5;
+  const compteLettres = {};
+  for (const l of motSolution) compteLettres[l] = (compteLettres[l] || 0) + 1;
+  const resultat = Array(5).fill("incorrect");
 
-  const lettresUtilisees = {};
   for (let i = 0; i < 5; i++) {
-    const index = tentative * 5 + i;
-    const caseLettre = grille.children[index];
-    const lettre = motActuel[i];
-
-    caseLettre.classList.add("retournement");
-
-    if (lettre === motSecret[i]) {
-      caseLettre.classList.add("bien-place");
-      lettresUtilisees[lettre] = "utilise-bien-place";
-    } else if (motSecret.includes(lettre)) {
-      caseLettre.classList.add("mal-place");
-      if (lettresUtilisees[lettre] !== "utilise-bien-place")
-        lettresUtilisees[lettre] = "utilise-mal-place";
-    } else {
-      caseLettre.classList.add("incorrect");
-      if (!lettresUtilisees[lettre])
-        lettresUtilisees[lettre] = "utilise-incorrect";
+    if (essaiActuel[i] === motSolution[i]) {
+      resultat[i] = "bien-place";
+      compteLettres[essaiActuel[i]]--;
     }
   }
 
-  // Mise à jour des touches du clavier selon résultat
-  for (const bouton of clavier.children) {
-    const lettre = bouton.textContent;
-    if (lettresUtilisees[lettre]) {
-      bouton.classList.remove("utilise-bien-place", "utilise-mal-place", "utilise-incorrect");
-      bouton.classList.add(lettresUtilisees[lettre]);
+  for (let i = 0; i < 5; i++) {
+    if (resultat[i] !== "bien-place" && motSolution.includes(essaiActuel[i]) && compteLettres[essaiActuel[i]] > 0) {
+      resultat[i] = "mal-place";
+      compteLettres[essaiActuel[i]]--;
     }
   }
 
-  if (motActuel === motSecret) {
-    message.textContent = "🎉 Bravo ! Vous avez trouvé le mot !";
-    boutonRejouer.style.display = "inline-block";
+  const grille = document.getElementById("grille");
+  const clavier = document.getElementById("clavier");
+
+  for (let i = 0; i < 5; i++) {
+    const cellule = grille.children[debutLigne + i];
+    setTimeout(() => {
+      cellule.classList.add("retournement");
+      setTimeout(() => {
+        cellule.classList.add(resultat[i]);
+        const bouton = [...clavier.children].find(k => k.textContent === essaiActuel[i]);
+        if (bouton) bouton.classList.add("utilise-" + resultat[i]);
+      }, 300);
+    }, i * 300);
+  }
+
+  if (essaiActuel === motSolution) {
+    document.getElementById("message").textContent = "🎉 Bravo !";
+    document.getElementById("rejouer").style.display = "inline-block";
+    document.removeEventListener("keydown", gererClavierPhysique);
     return;
   }
 
   tentative++;
-  motActuel = "";
-
-  if (tentative === MAX_TENTATIVES) {
-    message.textContent = `💀 Perdu ! Le mot était : ${motSecret}`;
-    boutonRejouer.style.display = "inline-block";
+  essaiActuel = "";
+  if (tentative === maxTentatives) {
+    document.getElementById("message").textContent = "😢 Mot : " + motSolution;
+    document.getElementById("rejouer").style.display = "inline-block";
+    document.removeEventListener("keydown", gererClavierPhysique);
   }
 }
 
