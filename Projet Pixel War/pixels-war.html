@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr"> <!-- Langue du document : français -->
+
+<head>
+    <meta charset="UTF-8" /> <!-- Encodage en UTF-8 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" /> <!-- Compatibilité IE -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Responsive mobile -->
+    <title>Pixel War ue22</title> <!-- Titre de l'onglet -->
+    
+    <!-- Feuille de style externe -->
+    <link rel="stylesheet" href="./pixels-war.css" />
+
+    <!-- Script JavaScript chargé après le DOM -->
+    <script src="./pixels-war.js" defer></script>
+</head>
+
+<body>
+    <!-- Bloc pour entrer les paramètres de connexion (URL + ID de la carte) -->
+    <div id="connect-dialog">
+        <span>
+            <label for="baseurl" class="vivid-label">Base URL :</label> <!-- Label stylisé -->
+            <input id="baseurl" type="text"> <!-- Champ pour l'URL de l'API -->
+        </span>
+        <span>
+            <label for="mapid" class="vivid-label">Map ID :</label> <!-- ID de la grille -->
+            <input id="mapid" type="text" value="0000"> <!-- Champ pré-rempli -->
+        </span>
+    </div>
+
+    <!-- Indicateur visuel du temps restant avant le prochain pixel -->
+    <div id="temps-container">
+        <span id="messageTemps">⏳ Temps restant :</span> <!-- Texte fixe -->
+        <span id="compteur">0</span> s <!-- Compteur mis à jour en JS -->
+    </div>
+
+    <!-- Grille de pixels affichée ici dynamiquement -->
+    <div id="grid"></div>
+
+    <!-- Contrôles de l'utilisateur : couleur + bouton refresh -->
+    <div id="controls">
+        <label for="colorpicker">Couleur :</label> <!-- Choix de la couleur -->
+        <input id="colorpicker" type="color" value="#000000" title="Choisis ta couleur"> <!-- Picker -->
+        <button type="button" class="btn btn-primary" id="refresh">Rafraîchir</button> <!-- Mise à jour de la grille -->
+    </div>
+</body>
+
+</html>
+
